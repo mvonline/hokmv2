@@ -1,6 +1,5 @@
 pettingzoo
 numpy
 torch
-ray[rllib]
 shimmy
 gymnasium
