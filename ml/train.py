@@ -1,57 +1,41 @@
-import os
-import ray
-from ray import tune
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.tune.registry import register_env
+import time
+import random
+from ml.hokm.env import HokmEnv
 from pettingzoo.test import api_test
 
-from ml.hokm.env import HokmEnv
-
-def env_creator(config):
-    return HokmEnv()
-
-def train():
-    # Register the environment
-    register_env("hokm_v2", env_creator)
-
-    # Initialize Ray
-    ray.init()
-
-    # Configure PPO
-    config = (
-        PPOConfig()
-        .environment("hokm_v2")
-        .framework("torch")
-        .rollouts(num_rollout_workers=1)
-        .training(
-            model={
-                "fcnet_hiddens": [256, 256],
-                "fcnet_activation": "relu",
-            }
-        )
-        .multi_agent(
-            policies={"shared_policy"},
-            policy_mapping_fn=lambda agent_id, episode, worker, **kwargs: "shared_policy",
-        )
-    )
-
-    # Run training
-    tune.run(
-        "PPO",
-        config=config.to_dict(),
-        stop={"training_iteration": 10},
-        checkpoint_freq=5,
-        storage_path=os.path.abspath("./results"),
-    )
-
-    ray.shutdown()
+def run_random_episode():
+    env = HokmEnv(render_mode="human")
+    env.reset()
+    
+    print("\n--- Starting Random Episode ---")
+    for agent in env.agent_iter():
+        observation, reward, termination, truncation, info = env.last()
+        
+        if termination or truncation:
+            action = None
+        else:
+            # Filter invalid actions using action mask
+            mask = observation["action_mask"]
+            valid_actions = [i for i, valid in enumerate(mask) if valid]
+            action = random.choice(valid_actions)
+            
+        env.step(action)
+        
+        if termination or truncation:
+            print(f"Agent {agent} finished. Reward: {reward}")
+            
+    print("Episode finished.")
+    env.close()
 
 if __name__ == "__main__":
-    # Basic API test
-    print("Running API test...")
-    env = HokmEnv()
-    api_test(env, num_cycles=10)
-    print("API test passed!")
+    print("Running PettingZoo API Test...")
+    try:
+        env = HokmEnv()
+        api_test(env, num_cycles=10)
+        print("API Test Passed!")
+    except Exception as e:
+        print(f"API Test Failed: {e}")
+        exit(1)
 
-    print("Starting training...")
-    train()
+    print("\nRunning Simulation with Random Agents...")
+    run_random_episode()

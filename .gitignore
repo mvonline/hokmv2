@@ -1,0 +1,22 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Node
+node_modules/
+dist/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+ml/results/
+
+# IDE
+.idea/
+.vscode/
+*.swp
