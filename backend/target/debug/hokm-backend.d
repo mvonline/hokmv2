@@ -1,0 +1,1 @@
+/home/masoud/project/hokmv2/backend/target/debug/hokm-backend: /home/masoud/project/hokmv2/backend/src/game.rs /home/masoud/project/hokmv2/backend/src/main.rs /home/masoud/project/hokmv2/backend/src/ws.rs
